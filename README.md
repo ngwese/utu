@@ -13,8 +13,6 @@ to be used in a wide number of environments.
 | -------- | ------- | -------- | -- |
 | gcc | 10.2.1 20210110 | aarch64-linux-gnu | Debian Bullseye |
 | clang | Apple clang version 21.0.0 | arm64-apple-darwin25.6.0 | Tahoe |
-| clang | Apple clang version 13.0.0 | arm64-apple-darwin21.2.0 | Monterey |
-| clang | Apple clang version 13.0.0 | x86_64-apple-darwin20.6.0 | Big Sur |
 | msvc | 19.44.35225.0 | x86_64-pc-windows-msvc | Windows 11 |
 
 
