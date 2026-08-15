@@ -53,3 +53,22 @@ cmake ..
 cmake --build .
 ./bin/Debug/utu --help
 ```
+
+on windows (Visual Studio / MSVC only):
+
+MSVC's `std::regex` cannot parse utu's usage string, so the build vendors
+[Boost.Regex](https://www.boost.org/doc/libs/release/libs/regex/) in standalone
+mode (no other Boost libraries, no vcpkg). Linux and macOS do not use it.
+
+Visual Studio is multi-config, so pass `--config` and run the executable from
+the matching output directory (`bin\Debug` or `bin\Release`). The Windows
+executable links the static CRT (`/MT` / `/MTd`), so it does not need the
+Visual C++ redistributable.
+
+```
+cmake --build . --config Debug
+bin\Debug\utu.exe --help
+
+cmake --build . --config Release
+bin\Release\utu.exe --help
+```

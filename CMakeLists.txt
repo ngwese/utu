@@ -1,6 +1,11 @@
 
 cmake_minimum_required (VERSION 3.16)
 
+# CMake 4 removed compatibility with cmake_minimum_required < 3.5.
+# Several vendored projects still declare 3.1.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING
+    "Minimum CMake policy version for vendored projects")
+
 # set deployment target before first project invocation
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11" CACHE STRING "Minimum OS X deployment version")
 
@@ -22,7 +27,7 @@ project("utu"
 include(cmake/StandardSettings.cmake)
 include(cmake/StaticAnalyzers.cmake)
 include(cmake/Utils.cmake)
-if(NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug")
 endif()
 message(STATUS "Started CMake for ${PROJECT_NAME} v${PROJECT_VERSION}...\n")
@@ -52,6 +57,10 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
 endif()
 
+# Static CRT on MSVC so the Windows exe does not need the VC++ redistributable.
+# Must be set before any targets are created. Ignored on other platforms.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 #
 # Enable package managers
 #
@@ -65,7 +74,26 @@ include(cmake/Vcpkg.cmake)
 
 # docopt
 if(${PROJECT_NAME}_BUILD_EXECUTABLE)
+  if(MSVC)
+    # MSVC std::regex throws regex_error(error_stack) on utu's usage string.
+    # Standalone Boost.Regex (header-only, no other Boost libs). Do not set
+    # vendor USE_BOOST_REGEX: its find_package(Boost) breaks on CMake 4
+    # (CMP0167) and only links the shared docopt target, not docopt_s.
+    set(BOOST_REGEX_STANDALONE ON CACHE BOOL
+        "Boost.Regex standalone (no other Boost libraries)")
+    if(NOT BOOST_SUPERPROJECT_VERSION)
+      set(BOOST_SUPERPROJECT_VERSION "1.89.0")
+    endif()
+    add_subdirectory(vendor/boost-regex)
+  endif()
   add_subdirectory(vendor/docopt)
+  if(MSVC)
+    # Upstream typo: DOCTOPT_USE_BOOST_REGEX (see vendor/docopt/docopt_private.h).
+    # BUILD_INTERFACE: docopt's install(EXPORT) must not require boost_regex.
+    target_compile_definitions(docopt_s PUBLIC
+        $<BUILD_INTERFACE:DOCTOPT_USE_BOOST_REGEX>)
+    target_link_libraries(docopt_s PUBLIC $<BUILD_INTERFACE:Boost::regex>)
+  endif()
 endif()
 
 # loris
@@ -76,9 +104,8 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(vendor/json)
 
 # libsndfile
-if(MSVC)
-  set(ENABLE_STATIC_RUNTIME OFF CACHE INTERNAL "")
-endif()
+# Do not set ENABLE_STATIC_RUNTIME: libsndfile errors if that and
+# CMAKE_MSVC_RUNTIME_LIBRARY are both defined.
 set(ENABLE_EXTERNAL_LIBS OFF CACHE INTERNAL "")
 set(ENABLE_CPACK OFF CACHE INTERNAL "")
 set(ENABLE_PACKAGE_CONFIG OFF CACHE INTERNAL "")
@@ -88,7 +115,14 @@ set(BUILD_EXAMPLES OFF CACHE INTERNAL "")
 add_subdirectory(vendor/libsndfile)
 
 # rtaudio
+set(RTAUDIO_TARGETNAME_UNINSTALL "rtaudio_uninstall" CACHE STRING
+    "Name of rtaudio uninstall target")
 add_subdirectory(vendor/rtaudio)
+# rtaudio 6.0.0beta1 installs these from CMAKE_BINARY_DIR (thestk/rtaudio#440).
+file(COPY
+  "${CMAKE_CURRENT_BINARY_DIR}/vendor/rtaudio/RtAudioConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/vendor/rtaudio/RtAudioConfig-version.cmake"
+  DESTINATION "${CMAKE_BINARY_DIR}")
 
 # libsamplerate
 add_subdirectory(vendor/libsamplerate)
@@ -172,19 +206,21 @@ else()
   endif()
 endif()
 
+# $<CONFIG> is Debug/Release/etc. Multi-config generators (Visual Studio)
+# do not append a second config subdirectory when the path already has it.
 set_target_properties(
   ${PROJECT_NAME}
   PROPERTIES
-  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}"
-  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}"
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>"
 )
 if(${PROJECT_NAME}_BUILD_EXECUTABLE AND ${PROJECT_NAME}_ENABLE_UNIT_TESTING)
   set_target_properties(
     ${PROJECT_NAME}_LIB
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${CMAKE_BUILD_TYPE}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
     OUTPUT_NAME ${PROJECT_NAME}
   )
 endif()
@@ -238,17 +274,7 @@ include(cmake/Doxygen.cmake)
 #  )
 #endif()
 
-# For Windows, it is necessary to link with the MultiThreaded library.
-# Depending on how the rest of the project's dependencies are linked, it might be necessary
-# to change the line to statically link with the library.
-#
-# This is done as follows:
-#
-# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-#
-# On Linux and Mac this variable is ignored. If any issues rise from it, try commenting it out
-# and letting CMake decide how to link with it.
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+# CMAKE_MSVC_RUNTIME_LIBRARY is set before vendor targets are created.
 
 verbose_message("Successfully added all dependencies and linked against them.")
 

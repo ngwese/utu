@@ -13,7 +13,7 @@
 
 std::optional<AudioFile::Format> AudioFile::inferFormat(const std::filesystem::path& p)
 {
-  std::string e = p.extension();
+  std::string e = p.extension().string();
   if (e == ".wav") {
     return AudioFile::Format::WAV;
   }
@@ -53,7 +53,7 @@ AudioFile AudioFile::forRead(const std::filesystem::path& p)
   AudioFile file(p, Mode::READ);
 
   file._info.format = 0;
-  file._file = sf_open(p.c_str(), SFM_READ, &file._info);
+  file._file = sf_open(p.string().c_str(), SFM_READ, &file._info);
   // FIXME: need proper error handling
   assert(file._file != nullptr);
 
@@ -104,7 +104,7 @@ AudioFile AudioFile::forWrite(const std::filesystem::path& p, uint32_t sampleRat
   file._info.samplerate = static_cast<int>(sampleRate);
   file._info.channels = channels;
 
-  file._file = sf_open(p.c_str(), SFM_WRITE, &file._info);
+  file._file = sf_open(p.string().c_str(), SFM_WRITE, &file._info);
   assert(file._file != nullptr);
 
   return file;

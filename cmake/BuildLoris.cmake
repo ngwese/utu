@@ -27,8 +27,16 @@ configure_file(
 # Public include layout matching the installed API: <loris/Analyzer.h>
 set(loris_wrap_dir ${CMAKE_CURRENT_BINARY_DIR}/loris-include)
 file(MAKE_DIRECTORY ${loris_wrap_dir})
-file(REMOVE ${loris_wrap_dir}/loris)
-file(CREATE_LINK ${loris_SOURCE_DIR}/src ${loris_wrap_dir}/loris SYMBOLIC)
+# REMOVE_RECURSE clears a prior symlink or directory copy.
+file(REMOVE_RECURSE ${loris_wrap_dir}/loris)
+# COPY_ON_ERROR does not reliably copy directories on Windows; fall back
+# to an explicit copy if the symlink cannot be created.
+file(CREATE_LINK ${loris_SOURCE_DIR}/src ${loris_wrap_dir}/loris SYMBOLIC
+     RESULT loris_link_result)
+if(loris_link_result)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${loris_SOURCE_DIR}/src ${loris_wrap_dir}/loris)
+endif()
 
 set(loris_src ${loris_SOURCE_DIR}/src)
 
@@ -96,7 +104,13 @@ set(LORIS_FASTSYNTH_SRC
 add_library(loris STATIC ${LORIS_CPP_SRC} ${LORIS_PI_SRC} ${LORIS_FASTSYNTH_SRC})
 target_compile_features(loris PUBLIC cxx_std_17)
 target_compile_definitions(loris PUBLIC FASTSYNTH_FLOAT_TYPE=double)
-target_compile_options(loris PRIVATE -Wno-comment)
+if(MSVC)
+  # MSVC only defines M_PI (and friends) when this is set before <cmath>.
+  target_compile_definitions(loris PRIVATE _USE_MATH_DEFINES)
+endif()
+if(NOT MSVC)
+  target_compile_options(loris PRIVATE -Wno-comment)
+endif()
 target_include_directories(loris
   SYSTEM PUBLIC
     ${loris_wrap_dir}
@@ -111,7 +125,7 @@ if(FFTW_FOUND)
   target_link_libraries(loris PUBLIC PkgConfig::FFTW)
 endif()
 
-if(NOT APPLE)
+if(UNIX AND NOT APPLE)
   target_link_libraries(loris PRIVATE m)
 endif()
 

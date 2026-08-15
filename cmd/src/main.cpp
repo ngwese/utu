@@ -193,7 +193,7 @@ int AnalyzeCommand(Args& args)
     } else {
       // output JSON format
       utu::PartialData data = Marshal::from(partials);
-      data.source = utu::PartialData::Source({std::filesystem::canonical(sourcePath), {}});
+      data.source = utu::PartialData::Source({std::filesystem::canonical(sourcePath).string(), {}});
 
       if (outputPath.asString() == "-") {
         utu::PartialWriter::write(data, std::cout);
@@ -339,7 +339,7 @@ int ConvertCommand(Args& args)
     Loris::SdifFile in(inSdif.asString());
 
     utu::PartialData data = Marshal::from(in.partials());
-    data.source = utu::PartialData::Source({std::filesystem::canonical(inSdif.asString()), {}});
+    data.source = utu::PartialData::Source({std::filesystem::canonical(inSdif.asString()).string(), {}});
     std::ofstream os(outJson.asString(), std::ios::binary);
     utu::PartialWriter::write(data, os);
 

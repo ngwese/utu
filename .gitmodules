@@ -19,3 +19,6 @@
 [submodule "vendor/loris"]
 	path = vendor/loris
 	url = https://github.com/kellyfitz/loris.git
+[submodule "vendor/boost-regex"]
+	path = vendor/boost-regex
+	url = https://github.com/boostorg/regex.git
