@@ -28,9 +28,21 @@ include(cmake/StandardSettings.cmake)
 include(cmake/StaticAnalyzers.cmake)
 include(cmake/Utils.cmake)
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
 endif()
 message(STATUS "Started CMake for ${PROJECT_NAME} v${PROJECT_VERSION}...\n")
+
+# Per-config output dirs (bin/Debug, bin/Release, …). Must be set before
+# targets are created. Unix Makefiles use CMAKE_BUILD_TYPE; Visual Studio
+# uses cmake --build --config.
+foreach(_utu_cfg Debug Release RelWithDebInfo MinSizeRel)
+  string(TOUPPER "${_utu_cfg}" _utu_cfg_u)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${_utu_cfg_u} "${CMAKE_BINARY_DIR}/bin/${_utu_cfg}")
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${_utu_cfg_u} "${CMAKE_BINARY_DIR}/lib/${_utu_cfg}")
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${_utu_cfg_u} "${CMAKE_BINARY_DIR}/lib/${_utu_cfg}")
+endforeach()
+unset(_utu_cfg)
+unset(_utu_cfg_u)
 
 if (UNIX)
     add_compile_options("$<$<CONFIG:DEBUG>:-D_DEBUG>")    #this will allow to use same _DEBUG macro available in both Linux as well as Windows - MSCV environment. Easy to put Debug specific code.
@@ -206,21 +218,10 @@ else()
   endif()
 endif()
 
-# $<CONFIG> is Debug/Release/etc. Multi-config generators (Visual Studio)
-# do not append a second config subdirectory when the path already has it.
-set_target_properties(
-  ${PROJECT_NAME}
-  PROPERTIES
-  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
-  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>"
-)
 if(${PROJECT_NAME}_BUILD_EXECUTABLE AND ${PROJECT_NAME}_ENABLE_UNIT_TESTING)
   set_target_properties(
     ${PROJECT_NAME}_LIB
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/$<CONFIG>"
     OUTPUT_NAME ${PROJECT_NAME}
   )
 endif()
