@@ -1,21 +1,21 @@
-[submodule "dep/docopt"]
-	path = dep/docopt
+[submodule "vendor/docopt"]
+	path = vendor/docopt
 	url = https://github.com/docopt/docopt.cpp.git
-[submodule "dep/json"]
-	path = dep/json
+[submodule "vendor/json"]
+	path = vendor/json
 	url = https://github.com/nlohmann/json.git
-[submodule "dep/googletest"]
-	path = dep/googletest
+[submodule "vendor/googletest"]
+	path = vendor/googletest
 	url = https://github.com/google/googletest.git
-[submodule "dep/libsndfile"]
-	path = dep/libsndfile
+[submodule "vendor/libsndfile"]
+	path = vendor/libsndfile
 	url = https://github.com/libsndfile/libsndfile.git
-[submodule "dep/rtaudio"]
-	path = dep/rtaudio
+[submodule "vendor/rtaudio"]
+	path = vendor/rtaudio
 	url = https://github.com/thestk/rtaudio.git
-[submodule "dep/libsamplerate"]
-	path = dep/libsamplerate
+[submodule "vendor/libsamplerate"]
+	path = vendor/libsamplerate
 	url = https://github.com/libsndfile/libsamplerate.git
-[submodule "dep/loris"]
-	path = dep/loris
+[submodule "vendor/loris"]
+	path = vendor/loris
 	url = https://github.com/kellyfitz/loris.git

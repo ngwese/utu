@@ -1,10 +1,10 @@
 include(FindPkgConfig)
 
-# Static overlay over kellyfitz/loris v2.0. Do not add_subdirectory(dep/loris):
+# Static overlay over kellyfitz/loris v2.0. Do not add_subdirectory(vendor/loris):
 # upstream's CMakeLists.txt is a standalone project (shared lib, CTest, Python).
-# Keep the source lists in sync with dep/loris/src/CMakeLists.txt when bumping
+# Keep the source lists in sync with vendor/loris/src/CMakeLists.txt when bumping
 # the submodule.
-set(loris_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dep/loris)
+set(loris_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/loris)
 
 enable_language(C)
 

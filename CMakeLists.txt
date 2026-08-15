@@ -65,7 +65,7 @@ include(cmake/Vcpkg.cmake)
 
 # docopt
 if(${PROJECT_NAME}_BUILD_EXECUTABLE)
-  add_subdirectory(dep/docopt)
+  add_subdirectory(vendor/docopt)
 endif()
 
 # loris
@@ -73,7 +73,7 @@ include(cmake/BuildLoris.cmake)
 
 # nlohmann json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(dep/json)
+add_subdirectory(vendor/json)
 
 # libsndfile
 if(MSVC)
@@ -85,16 +85,16 @@ set(ENABLE_PACKAGE_CONFIG OFF CACHE INTERNAL "")
 set(BUILD_TESTING OFF CACHE INTERNAL "")
 set(BUILD_PROGRAMS OFF CACHE INTERNAL "")
 set(BUILD_EXAMPLES OFF CACHE INTERNAL "")
-add_subdirectory(dep/libsndfile)
+add_subdirectory(vendor/libsndfile)
 
 # rtaudio
-add_subdirectory(dep/rtaudio)
+add_subdirectory(vendor/rtaudio)
 
 # libsamplerate
-add_subdirectory(dep/libsamplerate)
+add_subdirectory(vendor/libsamplerate)
 
 # gtest
-add_subdirectory(dep/googletest)
+add_subdirectory(vendor/googletest)
 
 
 #
