@@ -1,9 +1,6 @@
 [submodule "dep/docopt"]
 	path = dep/docopt
 	url = https://github.com/docopt/docopt.cpp.git
-[submodule "dep/loris"]
-	path = dep/loris
-	url = ssh://git@github.com/ngwese/loris.git
 [submodule "dep/json"]
 	path = dep/json
 	url = https://github.com/nlohmann/json.git
@@ -19,3 +16,6 @@
 [submodule "dep/libsamplerate"]
 	path = dep/libsamplerate
 	url = https://github.com/libsndfile/libsamplerate.git
+[submodule "dep/loris"]
+	path = dep/loris
+	url = https://github.com/kellyfitz/loris.git
