@@ -12,6 +12,7 @@ to be used in a wide number of environments.
 | compiler | version | platform | os |
 | -------- | ------- | -------- | -- |
 | gcc | 10.2.1 20210110 | aarch64-linux-gnu | Debian Bullseye |
+| gcc | 13.3.0 | aarch64-linux-gnu | Ubuntu Noble |
 | clang | Apple clang version 21.0.0 | arm64-apple-darwin25.6.0 | Tahoe |
 | msvc | 19.44.35225.0 | x86_64-pc-windows-msvc | Windows 11 |
 
